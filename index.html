@@ -76,7 +76,7 @@
   td.cell.period{height:80px;}
   .chips{display:flex; flex-wrap:wrap; gap:3px; margin-bottom:3px; justify-content:center;}
   .chip{display:inline-block; font-size:11px; font-weight:700; color:#fff; padding:1px 6px; border-radius:5px; line-height:1.45; white-space:nowrap;}
-  .subj{font-size:14.5px; font-weight:800; color:var(--ink); min-height:18px; letter-spacing:0.05em;}
+  .subj{font-size:14.5px; font-weight:800; color:var(--ink); min-height:18px; letter-spacing:0.05em; background:rgba(0,0,0,.055); border-bottom:1.5px solid rgba(0,0,0,.22); border-radius:4px 4px 0 0; padding:2px 4px;}
   .subj.replaced{color:#5a51c9;}
   .baseold{font-size:11px; font-weight:600; color:var(--faint);}
   .bodyrow{display:flex; align-items:flex-start; gap:3px; text-align:left; margin-top:3px;}
@@ -115,7 +115,7 @@
   .dc-h{display:flex; align-items:center; justify-content:center; gap:8px; margin-bottom:5px;}
   .dc-no{font-size:13px; font-weight:800; color:var(--accent);}
   .dc-time{font-size:12px; font-weight:600; color:var(--muted);}
-  .dcard .subj{font-size:17.5px; min-height:0; letter-spacing:0.05em;}
+  .dcard .subj{font-size:17.5px; min-height:0; letter-spacing:0.05em; background:rgba(0,0,0,.055); border-bottom:1.5px solid rgba(0,0,0,.22); border-radius:6px 6px 0 0; padding:4px 6px;}
   .dcard .body{font-size:14.5px;}
   .dcard .btri{font-size:13px;}
   .body.ph:empty{min-height:14px;}
@@ -198,6 +198,7 @@
 
   <div class="actionbar chrome">
     <button class="btn primary" id="printBtn">🖨 인쇄 / PDF</button>
+    <button class="btn" id="ttBtn">🗓 기본 시간표 편집</button>
     <button class="btn" id="colorBtn">🎨 과목 색</button>
     <button class="btn" id="syncBtn">🔄 캘린더 동기화</button>
     <button class="btn" id="serverBtn">🌐 공유 서버 연결</button>
@@ -507,11 +508,14 @@ function bgFor(subject, cd, evs){
 }
 
 function cellModel(day,rowKey,p,ov){
+  const pidx=parseInt(rowKey,10)-1;
+  const tt=ttFor(curClass);
+  const baseSubj=(tt&&tt[day]&&tt[day][pidx])||'';
   const cellKey=rowKey+'|'+day;
   const cd=p.cells[cellKey]||{};
   const evs=(ov[day].periods[rowKey])||[];
   const subjStored=cd.subj;
-  const subjShow=(subjStored!=null&&subjStored!=='')?subjStored:(evs.length?evs[0].name:'');
+  const subjShow=(subjStored!=null&&subjStored!=='')?subjStored:(evs.length?evs[0].name:baseSubj);
   const replaced=evs.length&&(subjStored==null||subjStored==='');
   const bodyDef=evs.length?evs.map(e=>e.note).filter(Boolean).join(' / '):'';
   const body=(cd.body!=null)?cd.body:bodyDef;
