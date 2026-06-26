@@ -72,6 +72,12 @@
   .dhead .ddate{font-size:18.5px; font-weight:800; color:var(--ink); margin-top:0;}
   .dhead .dow{font-size:16.5px; font-weight:800; color:var(--accent);}
   .holi-col{background:var(--holi-bg)!important;}
+  td.cell.single.off{background:#f6dcdb!important;}
+  .offbtn{appearance:none; margin-top:4px; border:1px solid var(--line); background:#fff; font-family:inherit; font-size:11px; font-weight:700; color:var(--muted); padding:2px 7px; border-radius:7px; cursor:pointer;}
+  .offbtn:hover{border-color:var(--holi); color:var(--holi);}
+  .offbtn.on{background:var(--holi); border-color:var(--holi); color:#fff;}
+  .offname{font-size:15.5px; font-weight:800; color:var(--holi); text-align:center; min-height:18px;}
+  .offname.ph:empty:before{content:attr(data-ph); color:#cc9b9a; font-weight:600;}
   .holi-name{display:block; font-size:12px; font-weight:700; color:var(--holi); margin-top:2px;}
   .rowlab{background:#f7f9fb; padding:6px 3px;}
   .rl-name{font-size:14px; font-weight:800;}
@@ -86,7 +92,7 @@
   .baseold{font-size:11px; font-weight:600; color:var(--faint);}
   .bodyrow{display:flex; align-items:flex-start; gap:3px; text-align:left; margin-top:2px;}
   .btri{flex:0 0 auto; color:var(--faint); line-height:1.5;}
-  .unit{font-size:12px; font-weight:700; color:#2a3138; line-height:1.45; white-space:pre-wrap; word-break:break-word; text-align:left; min-height:13px; margin-top:3px;}
+  .unit{font-size:13px; font-weight:800; color:#171c22; line-height:1.45; white-space:pre-wrap; word-break:break-word; text-align:left; min-height:13px; margin-top:3px;}
   .unit.ph:empty:before{content:attr(data-ph); color:var(--faint); font-weight:400;}
   .body{font-size:12.5px; color:#3c454d; line-height:1.5; white-space:pre-wrap; word-break:break-word; min-height:14px; text-align:left; flex:1 1 auto;}
   .mat{font-size:11.5px; color:var(--accent); margin-top:4px; font-weight:600; white-space:pre-wrap; word-break:break-word;}
@@ -99,9 +105,14 @@
   .dbchip{display:block; font-size:11px; font-weight:700; color:var(--accent); background:var(--accent-soft); border:1px solid #cfe0ee; border-radius:5px; padding:2px 6px; margin-bottom:3px; line-height:1.4;}
 
   td.cell.period{position:relative;}
+  td.cell.single{position:relative;}
   .dcard{position:relative;}
   .cellbg{position:absolute; top:3px; right:3px; width:15px; height:15px; border-radius:4px; border:1px solid rgba(0,0,0,.2); background:#fff; cursor:pointer; padding:0; opacity:.45; transition:.15s; z-index:2;}
-  td.cell.period:hover .cellbg, .dcard:hover .cellbg{opacity:1;}
+  td.cell.period:hover .cellbg, td.cell.single:hover .cellbg, .dcard:hover .cellbg{opacity:1;}
+  .cellcopy,.cellpaste{position:absolute; top:3px; height:16px; padding:0 5px; border-radius:4px; border:1px solid rgba(0,0,0,.18); background:#fff; cursor:pointer; font-size:10.5px; font-weight:700; line-height:14px; color:var(--muted); opacity:.4; transition:.15s; z-index:2;}
+  .cellcopy{left:3px;} .cellpaste{left:40px; color:var(--accent); border-color:#bcd3e6;}
+  .cellcopy.on{background:var(--accent); color:#fff; border-color:var(--accent); opacity:1;}
+  td.cell.period:hover .cellcopy, td.cell.period:hover .cellpaste, .dcard:hover .cellcopy, .dcard:hover .cellpaste{opacity:1;}
   .palette{position:absolute; z-index:80; display:none; background:#fff; border:1px solid var(--line); border-radius:10px; box-shadow:0 8px 24px rgba(0,0,0,.2); padding:7px; gap:5px; grid-template-columns:repeat(5,1fr);}
   .palette.on{display:grid;}
   .swatch{width:26px; height:26px; border-radius:7px; border:1px solid rgba(0,0,0,.15); cursor:pointer; font-size:12px; color:#9aa3ac; display:flex; align-items:center; justify-content:center; padding:0;}
@@ -124,7 +135,7 @@
   .dc-time{font-size:12px; font-weight:600; color:var(--muted);}
   .dcard .subj{font-size:17.5px; min-height:0; letter-spacing:0.05em; background:rgba(0,0,0,.055); border-bottom:1.5px solid rgba(0,0,0,.22); border-radius:6px 6px 0 0; padding:4px 6px;}
   .dcard .body{font-size:14.5px;}
-  .dcard .unit{font-size:14px;}
+  .dcard .unit{font-size:15px; font-weight:800;}
   .dcard .btri{font-size:13px;}
   .body.ph:empty{min-height:14px;}
   .btri{font-size:11px;}
@@ -171,12 +182,12 @@
     .scroll{overflow:visible;}
     table.plan{min-width:0; font-size:11.5px;}
     table.plan th,table.plan td{border-color:#9aa3ac;}
-    .subj{font-size:12px;} .body{font-size:10.5px;} .unit{font-size:10.5px;} .mat{font-size:10px;}
+    .subj{font-size:12px;} .body{font-size:10.5px;} .unit{font-size:11.5px; font-weight:800;} .mat{font-size:10px;}
     .chip{font-size:9.5px;} .rl-name{font-size:11.5px;} .rl-time{font-size:9.5px;}
     .dow{font-size:15.5px;} .ddate{font-size:12px;}
     [contenteditable]:focus{background:transparent;}
     .helpbox,.modal-back{display:none!important;}
-    .cellbg,.palette{display:none!important;}
+    .cellbg,.palette,.cellcopy,.cellpaste{display:none!important;}
     td.cell.period{height:auto;}
   }
 </style>
@@ -245,6 +256,8 @@
     · 칸(과목·학습내용·시간·아침활동 등)을 눌러 직접 적으면 자동 저장됩니다. 과목은 시간표대로 자동 표시됩니다.<br>
     · 국악·진로체험 등 <b>외부교육은 과목 아래 학습내용 자리에 강조 칩으로</b> 자동 표시되고, 그 칸은 연한 색으로 강조됩니다.<br>
     · <code>🎨 과목 색</code> 또는 칸 우측 위 작은 네모로 칸 색을 바꿀 수 있습니다.<br>
+    · 교시 칸을 클릭한 뒤 <b>Ctrl+C</b>로 그 칸(과목·단원·학습내용)을 복사하고, 다른 칸을 클릭해 <b>Ctrl+V</b>로 붙여넣습니다. (글자를 드래그해 선택했을 때는 평소처럼 글자만 복사됩니다.)<br>
+    · 머리글의 <code>휴업 지정</code>으로 그 날을 휴업일로 만들면 열 전체가 다른 색이 되고 시간표가 비워집니다.<br>
     · 좁은 화면에서는 요일별 보기로 자동 전환됩니다. <code>🌐 공유 서버 연결</code> 주소가 있으면 같은 주소를 여는 누구나 보고 고칠 수 있어, 학부모도 인쇄 없이 바로 봅니다.
   </div>
 
@@ -385,6 +398,8 @@ let wserver=DEFAULT_WSERVER; try{ wserver=localStorage.getItem(WSERVER_KEY)||DEF
 
 /* ============ 공통 ============ */
 const DAYS=['월','화','수','목','금'];
+/* 학사력 방학 (자동 방학 처리) */
+const VACATIONS=[{name:'여름방학', start:'2026-07-29', end:'2026-08-25'}];
 const WD=['일','월','화','수','목','금','토'];
 const ROWS=[
   {key:'morning', name:'아침활동', time:'08:30~08:55', type:'single'},
@@ -457,11 +472,13 @@ function scheduleSave(){ lastInputTs=Date.now(); clearTimeout(saveTimer); saveTi
 function planKey(){ return curMon+'#'+curClass; }
 function getPlan(){
   const k=planKey();
-  if(!STATE.plans[k]) STATE.plans[k]={times:{},cells:{},morning:{},lunch:{},note:{},meta:{}};
+  if(!STATE.plans[k]) STATE.plans[k]={times:{},cells:{},morning:{},lunch:{},note:{},meta:{},off:{}};
   const p=STATE.plans[k];
-  p.times=p.times||{}; p.cells=p.cells||{}; p.morning=p.morning||{}; p.lunch=p.lunch||{}; p.note=p.note||{}; p.meta=p.meta||{};
+  p.times=p.times||{}; p.cells=p.cells||{}; p.morning=p.morning||{}; p.lunch=p.lunch||{}; p.note=p.note||{}; p.meta=p.meta||{}; p.off=p.off||{};
   return p;
 }
+function isOff(d,ov,p){ p=p||getPlan(); return (p.off&&p.off[d]!=null) || !!(ov&&ov[d]&&ov[d].holiday); }
+function offLabel(d,ov,p){ p=p||getPlan(); return (p.off&&p.off[d]!=null&&p.off[d]!=='')?p.off[d] : ((ov&&ov[d]&&ov[d].holiday)||'휴업'); }
 
 /* ============ 외부일정 오버레이 ============ */
 function buildOverlay(){
@@ -481,6 +498,8 @@ function buildOverlay(){
       else ov[day].banners.push({name:ev.name,note:ev.note||''});
     });
   });
+  // 학사력 방학 자동 반영(수동 지정 불필요)
+  DAYS.forEach((d,i)=>{ const ds=fmt(addDays(parse(curMon),i)); VACATIONS.forEach(v=>{ if(ds>=v.start && ds<=v.end && !ov[d].holiday) ov[d].holiday=v.name; }); });
   return ov;
 }
 
@@ -533,15 +552,19 @@ function render(){
 
 function buildWeekTable(mon,p,ov){
   let html='<colgroup><col class="lab">'+DAYS.map(()=>'<col>').join('')+'</colgroup><thead><tr><th></th>';
-  DAYS.forEach((d,i)=>{ const dt=addDays(mon,i); const holi=ov[d].holiday;
-    html+='<th class="'+(holi?'holi-col':'')+'"><div class="dhead"><span class="ddate">'+(dt.getMonth()+1)+'/'+dt.getDate()+'</span> <span class="dow">('+d+')</span></div>'+(holi?'<span class="holi-name">'+esc(holi)+'</span>':'')+'</th>'; });
+  DAYS.forEach((d,i)=>{ const dt=addDays(mon,i); const calHoli=!!ov[d].holiday; const off=isOff(d,ov,p); const man=p.off&&p.off[d]!=null;
+    html+='<th class="'+(off?'holi-col':'')+'"><div class="dhead"><span class="ddate">'+(dt.getMonth()+1)+'/'+dt.getDate()+'</span> <span class="dow">('+d+')</span></div>'
+      +(calHoli?'':'<button class="offbtn'+(man?' on':'')+'" data-off="'+d+'">'+(man?'수업일로':'휴업 지정')+'</button>')+'</th>'; });
   html+='</tr></thead><tbody>';
   ROWS.forEach(row=>{
     const tcustom=(p.times&&p.times[row.key]!=null)?p.times[row.key]:row.time;
     html+='<tr><td class="rowlab"><div class="rl-name">'+row.name+'</div>'+((row.time!==''||row.key==='note')?'<div class="rl-time" contenteditable="true" data-k="time" data-row="'+row.key+'">'+esc(tcustom)+'</div>':'')+'</td>';
     DAYS.forEach(d=>{
-      const holi=ov[d].holiday;
-      if(holi){ html+='<td class="cell single holi-col"><div class="singletxt" style="color:var(--holi);font-weight:700">'+esc(holi)+'</div></td>'; return; }
+      if(isOff(d,ov,p)){
+        if(row.key==='morning'){ html+='<td class="cell single holi-col off"><div class="offname ph" contenteditable="true" data-k="off" data-day="'+d+'" data-ph="휴업">'+esc(offLabel(d,ov,p))+'</div></td>'; }
+        else { html+='<td class="cell single holi-col off"></td>'; }
+        return;
+      }
       if(row.type==='single'){ html+=singleTD(row.key,d,p,ov); return; }
       const m=cellModel(d,row.key,p,ov);
       const cd=p.cells[m.cellKey]; const col=bgFor(m.subjShow,cd,m.evs);
@@ -561,7 +584,7 @@ function buildWeekTable(mon,p,ov){
 
 function singleTD(key,d,p,ov){
   if(key==='morning'){ const v=p.morning[d]!=null?p.morning[d]:defMorning(d); return '<td class="cell single"><div class="singletxt ph" contenteditable="true" data-k="morning" data-day="'+d+'" data-ph="아침활동">'+esc(v)+'</div></td>'; }
-  if(key==='lunch'){ const v=p.lunch[d]!=null?p.lunch[d]:'식사 · 청소'; return '<td class="cell single"><div class="singletxt ph" contenteditable="true" data-k="lunch" data-day="'+d+'" data-ph="점심">'+esc(v)+'</div></td>'; }
+  if(key==='lunch'){ const v=p.lunch[d]!=null?p.lunch[d]:'식사 · 청소'; const lc=(p.cells['lunch|'+d]||{}).bg||''; return '<td class="cell single lunch" style="background:'+(lc||'#fff')+'"><button class="cellbg" data-cell="lunch|'+d+'" title="점심 칸 색 바꾸기" style="background:'+(lc||'#fff')+'"></button><div class="singletxt ph" contenteditable="true" data-k="lunch" data-day="'+d+'" data-ph="점심">'+esc(v)+'</div></td>'; }
   // 비고: 학교 행사(배너)를 먼저, 그 아래 편집 가능한 비고
   let bans='';
   (ov&&ov[d]&&ov[d].banners||[]).forEach(b=>{ bans+='<span class="dbchip">'+esc(b.name)+(b.note?' · '+esc(b.note):'')+'</span>'; });
@@ -575,7 +598,7 @@ function buildDayView(mon,p,ov){
   DAYS.forEach((d,i)=>{ const dt=addDays(mon,i); tabs+='<button class="daytab'+(d===mobDay?' on':'')+'" data-day="'+d+'">'+d+'<small>'+(dt.getMonth()+1)+'/'+dt.getDate()+'</small></button>'; });
   tabs+='</div>';
   const d=mobDay; const list=[];
-  if(ov[d].holiday){ list.push('<div class="dcard holi">'+esc(ov[d].holiday)+' · 휴업</div>'); }
+  if(isOff(d,ov,p)){ list.push('<div class="dcard holi">'+esc(offLabel(d,ov,p))+' · 수업 없음</div>'); }
   else{
     ROWS.forEach(row=>{
       const tcustom=(p.times&&p.times[row.key]!=null)?p.times[row.key]:row.time;
@@ -586,13 +609,16 @@ function buildDayView(mon,p,ov){
         else {v=p.note[d]!=null?p.note[d]:'';ph='비고';}
         let bans='';
         if(k==='note'){ (ov[d].banners||[]).forEach(x=>{ bans+='<span class="dbchip">'+esc(x.name)+(x.note?' · '+esc(x.note):'')+'</span>'; }); }
-        list.push('<div class="dcard '+k+'"><div class="dc-h"><span class="dc-no">'+row.name+'</span>'+(row.time!==''||k==='note'?'<span class="dc-time" contenteditable="true" data-k="time" data-row="'+k+'">'+esc(tcustom)+'</span>':'')+'</div>'+(bans?'<div class="daybanner">'+bans+'</div>':'')+'<div class="singletxt ph" contenteditable="true" data-k="'+k+'" data-day="'+d+'" data-ph="'+ph+'">'+esc(v)+'</div></div>');
+        const lbg=(k==='lunch')?((p.cells['lunch|'+d]||{}).bg||''):'';
+        const lsw=(k==='lunch')?'<button class="cellbg" data-cell="lunch|'+d+'" title="점심 칸 색" style="background:'+(lbg||'#fff')+'"></button>':'';
+        list.push('<div class="dcard '+k+'" style="background:'+(lbg||'#fff')+'">'+lsw+'<div class="dc-h"><span class="dc-no">'+row.name+'</span>'+(row.time!==''||k==='note'?'<span class="dc-time" contenteditable="true" data-k="time" data-row="'+k+'">'+esc(tcustom)+'</span>':'')+'</div>'+(bans?'<div class="daybanner">'+bans+'</div>':'')+'<div class="singletxt ph" contenteditable="true" data-k="'+k+'" data-day="'+d+'" data-ph="'+ph+'">'+esc(v)+'</div></div>');
         return;
       }
       const m=cellModel(d,row.key,p,ov);
       const cd=p.cells[m.cellKey]; const col=bgFor(m.subjShow,cd,m.evs);
       let chips=''; m.evs.forEach(e=>{ chips+='<span class="chip" style="background:'+e.color+'">'+esc(e.name)+'</span>'; });
-      list.push('<div class="dcard" style="background:'+(col.bg||'#fff')+'"><button class="cellbg" data-cell="'+m.cellKey+'" title="칸 색 바꾸기" style="background:'+(cd&&cd.bg?cd.bg:'#fff')+'"></button><div class="dc-h"><span class="dc-no">'+row.name+'</span><span class="dc-time" contenteditable="true" data-k="time" data-row="'+row.key+'">'+esc(tcustom)+'</span></div>'
+      list.push('<div class="dcard" style="background:'+(col.bg||'#fff')+'"><button class="cellbg" data-cell="'+m.cellKey+'" title="칸 색 바꾸기" style="background:'+(cd&&cd.bg?cd.bg:'#fff')+'"></button>'
+        +'<div class="dc-h"><span class="dc-no">'+row.name+'</span><span class="dc-time" contenteditable="true" data-k="time" data-row="'+row.key+'">'+esc(tcustom)+'</span></div>'
         +'<div class="subj" style="color:'+col.fg+'" contenteditable="true" data-k="subj" data-cell="'+m.cellKey+'">'+esc(m.subjShow)+'</div>'
         +(chips?'<div class="evrow">'+chips+'</div>':'')
         +'<div class="unit ph" contenteditable="true" data-k="unit" data-cell="'+m.cellKey+'" data-ph="단원">'+esc(m.unit)+'</div>'
@@ -613,6 +639,7 @@ document.getElementById('sheet').addEventListener('input', e=>{
   const p=getPlan(); const txt=readText(el);
   if(k==='time'){ p.times[el.getAttribute('data-row')]=txt; }
   else if(k==='morning'||k==='lunch'||k==='note'){ p[k][el.getAttribute('data-day')]=txt; }
+  else if(k==='off'){ p.off[el.getAttribute('data-day')]=txt; }
   else if(k==='subj'||k==='unit'||k==='body'){ const ck=el.getAttribute('data-cell'); p.cells[ck]=p.cells[ck]||{}; p.cells[ck][k]=txt; }
   scheduleSave();
 });
@@ -666,9 +693,32 @@ document.getElementById('palette').addEventListener('click', e=>{
   p.cells[ck]=p.cells[ck]||{}; if(c) p.cells[ck].bg=c; else delete p.cells[ck].bg;
   saveState(); closePalette(); render();
 });
+let cellClip=null;
 document.getElementById('sheet').addEventListener('click', e=>{
-  const sw=e.target.closest('.cellbg'); if(!sw) return;
-  e.stopPropagation(); openPalette(sw, sw.getAttribute('data-cell'));
+  const sw=e.target.closest('.cellbg'); if(sw){ e.stopPropagation(); openPalette(sw, sw.getAttribute('data-cell')); return; }
+  const ob=e.target.closest('.offbtn'); if(ob){ e.stopPropagation(); const dd=ob.getAttribute('data-off'); const p=getPlan(); if(p.off[dd]!=null) delete p.off[dd]; else p.off[dd]=''; saveState(); render(); return; }
+});
+// Ctrl+C: 교시 칸(과목·단원·학습내용) 통째 복사 / Ctrl+V: 붙여넣기
+document.addEventListener('keydown', e=>{
+  if(!(e.ctrlKey||e.metaKey)||e.altKey) return;
+  const ae=document.activeElement;
+  const key=(ae&&ae.getAttribute)?ae.getAttribute('data-cell'):null;   // 교시 편집칸일 때만 값 있음
+  const kk=(e.key||'').toLowerCase();
+  if(kk==='c'){
+    if(key && window.getSelection && window.getSelection().isCollapsed){
+      const c=getPlan().cells[key]||{}; cellClip={src:key,subj:c.subj||'',unit:c.unit||'',body:c.body||'',bg:c.bg||''};
+      flash('칸 복사됨 — Ctrl+V로 붙여넣기'); e.preventDefault();
+    }
+  } else if(kk==='v'){
+    if(key && cellClip){
+      const p=getPlan(); p.cells[key]=p.cells[key]||{};
+      p.cells[key].subj=cellClip.subj; p.cells[key].unit=cellClip.unit; p.cells[key].body=cellClip.body;
+      if(cellClip.bg) p.cells[key].bg=cellClip.bg; else delete p.cells[key].bg;
+      saveState(); e.preventDefault(); render();
+      const f=document.querySelector('.body[data-cell="'+key.replace(/"/g,'')+'"]'); if(f) f.focus();
+      flash('붙여넣음');
+    }
+  }
 });
 document.addEventListener('click', e=>{ if(!e.target.closest('#palette')&&!e.target.closest('.cellbg')) closePalette(); });
 
