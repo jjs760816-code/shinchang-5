@@ -68,6 +68,9 @@
   table.plan thead th{background:#f7f9fb; padding:7px 4px;}
   .dow{font-size:20px; font-weight:800;}
   .ddate{font-size:15px; font-weight:700; color:var(--muted); margin-top:2px;}
+  .dhead{display:flex; align-items:baseline; justify-content:center; gap:5px;}
+  .dhead .ddate{font-size:18.5px; font-weight:800; color:var(--ink); margin-top:0;}
+  .dhead .dow{font-size:16.5px; font-weight:800; color:var(--accent);}
   .holi-col{background:var(--holi-bg)!important;}
   .holi-name{display:block; font-size:12px; font-weight:700; color:var(--holi); margin-top:2px;}
   .rowlab{background:#f7f9fb; padding:6px 3px;}
@@ -81,8 +84,10 @@
   .subj{font-size:14.5px; font-weight:800; color:var(--ink); min-height:18px; letter-spacing:0.05em; background:rgba(0,0,0,.055); border-bottom:1.5px solid rgba(0,0,0,.22); border-radius:4px 4px 0 0; padding:2px 4px;}
   .subj.replaced{color:#5a51c9;}
   .baseold{font-size:11px; font-weight:600; color:var(--faint);}
-  .bodyrow{display:flex; align-items:flex-start; gap:3px; text-align:left; margin-top:3px;}
+  .bodyrow{display:flex; align-items:flex-start; gap:3px; text-align:left; margin-top:2px;}
   .btri{flex:0 0 auto; color:var(--faint); line-height:1.5;}
+  .unit{font-size:12px; font-weight:700; color:#2a3138; line-height:1.45; white-space:pre-wrap; word-break:break-word; text-align:left; min-height:13px; margin-top:3px;}
+  .unit.ph:empty:before{content:attr(data-ph); color:var(--faint); font-weight:400;}
   .body{font-size:12.5px; color:#3c454d; line-height:1.5; white-space:pre-wrap; word-break:break-word; min-height:14px; text-align:left; flex:1 1 auto;}
   .mat{font-size:11.5px; color:var(--accent); margin-top:4px; font-weight:600; white-space:pre-wrap; word-break:break-word;}
   .mat.ph:empty:before, .body.ph:empty:before{content:attr(data-ph); color:var(--faint); font-weight:400;}
@@ -119,6 +124,7 @@
   .dc-time{font-size:12px; font-weight:600; color:var(--muted);}
   .dcard .subj{font-size:17.5px; min-height:0; letter-spacing:0.05em; background:rgba(0,0,0,.055); border-bottom:1.5px solid rgba(0,0,0,.22); border-radius:6px 6px 0 0; padding:4px 6px;}
   .dcard .body{font-size:14.5px;}
+  .dcard .unit{font-size:14px;}
   .dcard .btri{font-size:13px;}
   .body.ph:empty{min-height:14px;}
   .btri{font-size:11px;}
@@ -165,7 +171,7 @@
     .scroll{overflow:visible;}
     table.plan{min-width:0; font-size:11.5px;}
     table.plan th,table.plan td{border-color:#9aa3ac;}
-    .subj{font-size:12px;} .body{font-size:10.5px;} .mat{font-size:10px;}
+    .subj{font-size:12px;} .body{font-size:10.5px;} .unit{font-size:10.5px;} .mat{font-size:10px;}
     .chip{font-size:9.5px;} .rl-name{font-size:11.5px;} .rl-time{font-size:9.5px;}
     .dow{font-size:15.5px;} .ddate{font-size:12px;}
     [contenteditable]:focus{background:transparent;}
@@ -497,8 +503,9 @@ function cellModel(day,rowKey,p,ov){
   const evs=(ov[day].periods[rowKey])||[];
   const subjStored=cd.subj;
   const subjShow=(subjStored!=null&&subjStored!=='')?subjStored:baseSubj;
+  const unit=(cd.unit!=null)?cd.unit:'';
   const body=(cd.body!=null)?cd.body:'';
-  return {cellKey,evs,subjShow,body};
+  return {cellKey,evs,subjShow,unit,body};
 }
 
 /* ============ 렌더 ============ */
@@ -509,7 +516,7 @@ function render(){
   const mon=parse(curMon), fri=addDays(mon,4), wkNo=weekNoOf(curMon);
   document.getElementById('wkLabel').innerHTML='제 '+wkNo+' 주 <small>'+(mon.getMonth()+1)+'.'+mon.getDate()+'('+WD[mon.getDay()]+') ~ '+(fri.getMonth()+1)+'.'+fri.getDate()+'('+WD[fri.getDay()]+')</small>';
   document.getElementById('sheetTitle').textContent='5학년 '+curClass+'반 주간학습 안내';
-  document.getElementById('periodText').textContent=(mon.getMonth()+1)+'월 '+mon.getDate()+'일 ~ '+(fri.getMonth()+1)+'월 '+fri.getDate()+'일';
+  document.getElementById('periodText').textContent=(mon.getMonth()+1)+'월 '+mon.getDate()+'일('+WD[mon.getDay()]+') ~ '+(fri.getMonth()+1)+'월 '+fri.getDate()+'일('+WD[fri.getDay()]+')';
   const wne=document.getElementById('weekNoEd'); if(document.activeElement!==wne) wne.textContent=wkNo;
   document.title='5학년 '+curClass+'반 · 제'+wkNo+'주 주간학습 안내';
 
@@ -527,7 +534,7 @@ function render(){
 function buildWeekTable(mon,p,ov){
   let html='<colgroup><col class="lab">'+DAYS.map(()=>'<col>').join('')+'</colgroup><thead><tr><th></th>';
   DAYS.forEach((d,i)=>{ const dt=addDays(mon,i); const holi=ov[d].holiday;
-    html+='<th class="'+(holi?'holi-col':'')+'"><div class="dow">'+d+'</div><div class="ddate">'+(dt.getMonth()+1)+'/'+dt.getDate()+'</div>'+(holi?'<span class="holi-name">'+esc(holi)+'</span>':'')+'</th>'; });
+    html+='<th class="'+(holi?'holi-col':'')+'"><div class="dhead"><span class="ddate">'+(dt.getMonth()+1)+'/'+dt.getDate()+'</span> <span class="dow">('+d+')</span></div>'+(holi?'<span class="holi-name">'+esc(holi)+'</span>':'')+'</th>'; });
   html+='</tr></thead><tbody>';
   ROWS.forEach(row=>{
     const tcustom=(p.times&&p.times[row.key]!=null)?p.times[row.key]:row.time;
@@ -535,7 +542,7 @@ function buildWeekTable(mon,p,ov){
     DAYS.forEach(d=>{
       const holi=ov[d].holiday;
       if(holi){ html+='<td class="cell single holi-col"><div class="singletxt" style="color:var(--holi);font-weight:700">'+esc(holi)+'</div></td>'; return; }
-      if(row.type==='single'){ html+=singleTD(row.key,d,p); return; }
+      if(row.type==='single'){ html+=singleTD(row.key,d,p,ov); return; }
       const m=cellModel(d,row.key,p,ov);
       const cd=p.cells[m.cellKey]; const col=bgFor(m.subjShow,cd,m.evs);
       let chips=''; m.evs.forEach(e=>{ chips+='<span class="chip" style="background:'+e.color+'">'+esc(e.name)+'</span>'; });
@@ -543,22 +550,23 @@ function buildWeekTable(mon,p,ov){
           +'<button class="cellbg" data-cell="'+m.cellKey+'" title="칸 색 바꾸기" style="background:'+(cd&&cd.bg?cd.bg:'#fff')+'"></button>'
           +'<div class="subj" style="color:'+col.fg+'" contenteditable="true" data-k="subj" data-cell="'+m.cellKey+'">'+esc(m.subjShow)+'</div>'
           +(chips?'<div class="evrow">'+chips+'</div>':'')
+          +'<div class="unit ph" contenteditable="true" data-k="unit" data-cell="'+m.cellKey+'" data-ph="단원">'+esc(m.unit)+'</div>'
           +'<div class="bodyrow"><span class="btri">▸</span><div class="body ph" contenteditable="true" data-k="body" data-cell="'+m.cellKey+'" data-ph="학습 내용">'+esc(m.body)+'</div></div></td>';
     });
     html+='</tr>';
   });
   html+='</tbody>';
   const tbl=document.getElementById('planTable'); tbl.innerHTML=html;
-  // 배너 주입(아침활동 행)
-  const rows=tbl.querySelectorAll('tbody tr'); let mTr=null;
-  rows.forEach(tr=>{ const t=tr.querySelector('.rl-name'); if(t&&t.textContent==='아침활동') mTr=tr; });
-  if(mTr){ const cells=mTr.querySelectorAll('td.cell'); DAYS.forEach((d,i)=>{ const list=ov[d].banners; if(!list||!list.length) return; const td=cells[i]; if(!td) return; const w=document.createElement('div'); w.className='daybanner'; list.forEach(b=>{ const s=document.createElement('span'); s.className='dbchip'; s.textContent=b.name+(b.note?' · '+b.note:''); w.appendChild(s); }); td.insertBefore(w,td.firstChild); }); }
 }
 
-function singleTD(key,d,p){
+function singleTD(key,d,p,ov){
   if(key==='morning'){ const v=p.morning[d]!=null?p.morning[d]:defMorning(d); return '<td class="cell single"><div class="singletxt ph" contenteditable="true" data-k="morning" data-day="'+d+'" data-ph="아침활동">'+esc(v)+'</div></td>'; }
   if(key==='lunch'){ const v=p.lunch[d]!=null?p.lunch[d]:'식사 · 청소'; return '<td class="cell single"><div class="singletxt ph" contenteditable="true" data-k="lunch" data-day="'+d+'" data-ph="점심">'+esc(v)+'</div></td>'; }
-  const v=p.note[d]!=null?p.note[d]:''; return '<td class="cell single note"><div class="singletxt ph" contenteditable="true" data-k="note" data-day="'+d+'" data-ph="비고">'+esc(v)+'</div></td>';
+  // 비고: 학교 행사(배너)를 먼저, 그 아래 편집 가능한 비고
+  let bans='';
+  (ov&&ov[d]&&ov[d].banners||[]).forEach(b=>{ bans+='<span class="dbchip">'+esc(b.name)+(b.note?' · '+esc(b.note):'')+'</span>'; });
+  const v=p.note[d]!=null?p.note[d]:'';
+  return '<td class="cell single note">'+(bans?'<div class="daybanner">'+bans+'</div>':'')+'<div class="singletxt ph" contenteditable="true" data-k="note" data-day="'+d+'" data-ph="비고">'+esc(v)+'</div></td>';
 }
 
 function buildDayView(mon,p,ov){
@@ -569,7 +577,6 @@ function buildDayView(mon,p,ov){
   const d=mobDay; const list=[];
   if(ov[d].holiday){ list.push('<div class="dcard holi">'+esc(ov[d].holiday)+' · 휴업</div>'); }
   else{
-    if(ov[d].banners.length){ let b='<div class="dcard"><div class="daybanner">'; ov[d].banners.forEach(x=>{ b+='<span class="dbchip">'+esc(x.name)+(x.note?' · '+esc(x.note):'')+'</span>'; }); b+='</div></div>'; list.push(b); }
     ROWS.forEach(row=>{
       const tcustom=(p.times&&p.times[row.key]!=null)?p.times[row.key]:row.time;
       if(row.type==='single'){
@@ -577,7 +584,9 @@ function buildDayView(mon,p,ov){
         if(k==='morning'){v=p.morning[d]!=null?p.morning[d]:defMorning(d);ph='아침활동';}
         else if(k==='lunch'){v=p.lunch[d]!=null?p.lunch[d]:'식사 · 청소';ph='점심';}
         else {v=p.note[d]!=null?p.note[d]:'';ph='비고';}
-        list.push('<div class="dcard '+k+'"><div class="dc-h"><span class="dc-no">'+row.name+'</span>'+(row.time!==''||k==='note'?'<span class="dc-time" contenteditable="true" data-k="time" data-row="'+k+'">'+esc(tcustom)+'</span>':'')+'</div><div class="singletxt ph" contenteditable="true" data-k="'+k+'" data-day="'+d+'" data-ph="'+ph+'">'+esc(v)+'</div></div>');
+        let bans='';
+        if(k==='note'){ (ov[d].banners||[]).forEach(x=>{ bans+='<span class="dbchip">'+esc(x.name)+(x.note?' · '+esc(x.note):'')+'</span>'; }); }
+        list.push('<div class="dcard '+k+'"><div class="dc-h"><span class="dc-no">'+row.name+'</span>'+(row.time!==''||k==='note'?'<span class="dc-time" contenteditable="true" data-k="time" data-row="'+k+'">'+esc(tcustom)+'</span>':'')+'</div>'+(bans?'<div class="daybanner">'+bans+'</div>':'')+'<div class="singletxt ph" contenteditable="true" data-k="'+k+'" data-day="'+d+'" data-ph="'+ph+'">'+esc(v)+'</div></div>');
         return;
       }
       const m=cellModel(d,row.key,p,ov);
@@ -586,6 +595,7 @@ function buildDayView(mon,p,ov){
       list.push('<div class="dcard" style="background:'+(col.bg||'#fff')+'"><button class="cellbg" data-cell="'+m.cellKey+'" title="칸 색 바꾸기" style="background:'+(cd&&cd.bg?cd.bg:'#fff')+'"></button><div class="dc-h"><span class="dc-no">'+row.name+'</span><span class="dc-time" contenteditable="true" data-k="time" data-row="'+row.key+'">'+esc(tcustom)+'</span></div>'
         +'<div class="subj" style="color:'+col.fg+'" contenteditable="true" data-k="subj" data-cell="'+m.cellKey+'">'+esc(m.subjShow)+'</div>'
         +(chips?'<div class="evrow">'+chips+'</div>':'')
+        +'<div class="unit ph" contenteditable="true" data-k="unit" data-cell="'+m.cellKey+'" data-ph="단원">'+esc(m.unit)+'</div>'
         +'<div class="bodyrow"><span class="btri">▸</span><div class="body ph" contenteditable="true" data-k="body" data-cell="'+m.cellKey+'" data-ph="학습 내용">'+esc(m.body)+'</div></div></div>');
     });
   }
@@ -600,12 +610,13 @@ document.getElementById('sheet').addEventListener('input', e=>{
   const el=e.target.closest('[contenteditable]'); if(!el) return;
   const k=el.getAttribute('data-k'); if(!k) return;
   if(el.id==='weekNoEd'){ getPlan().meta.weekNo=el.textContent; scheduleSave(); return; }
-  const p=getPlan(); const txt=el.textContent;
+  const p=getPlan(); const txt=readText(el);
   if(k==='time'){ p.times[el.getAttribute('data-row')]=txt; }
   else if(k==='morning'||k==='lunch'||k==='note'){ p[k][el.getAttribute('data-day')]=txt; }
-  else if(k==='subj'||k==='body'){ const ck=el.getAttribute('data-cell'); p.cells[ck]=p.cells[ck]||{}; p.cells[ck][k]=txt; }
+  else if(k==='subj'||k==='unit'||k==='body'){ const ck=el.getAttribute('data-cell'); p.cells[ck]=p.cells[ck]||{}; p.cells[ck][k]=txt; }
   scheduleSave();
 });
+function readText(el){ var t=(el.innerText!=null)?el.innerText:el.textContent; return String(t).replace(/\u00a0/g,' ').replace(/\n+$/,''); }
 ['schoolName','teacherName'].forEach(id=>{ document.getElementById(id).addEventListener('input', ()=>{ try{ localStorage.setItem('shinchang5_hdr_'+id, document.getElementById(id).textContent);}catch(e){} }); });
 try{ const sn=localStorage.getItem('shinchang5_hdr_schoolName'); if(sn) document.getElementById('schoolName').textContent=sn; const tn=localStorage.getItem('shinchang5_hdr_teacherName'); if(tn) document.getElementById('teacherName').textContent=tn; }catch(e){}
 
