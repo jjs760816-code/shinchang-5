@@ -268,7 +268,8 @@
     · 국악·진로체험 등 <b>외부교육은 과목 아래 학습내용 자리에 강조 칩으로</b> 자동 표시되고, 그 칸은 연한 색으로 강조됩니다.<br>
     · <code>🎨 과목 색</code> 또는 칸 우측 위 작은 네모로 칸 색을 바꿀 수 있습니다.<br>
     · 교시 칸을 클릭한 뒤 <b>Ctrl+C</b>로 그 칸(과목·단원·학습내용)을 복사하고, 다른 칸을 클릭해 <b>Ctrl+V</b>로 붙여넣습니다. (글자를 드래그해 선택했을 때는 평소처럼 글자만 복사됩니다.)<br>
-    · 머리글의 <code>휴업 지정</code>으로 그 날을 휴업일로 만들면 열 전체가 하나로 합쳐지고, 가운데에 <b>휴업일 이름(예: 제헌절)을 세로 큰 글씨</b>로 적을 수 있습니다.<br>
+    · 열 전체가 비워지는 것은 <b>머리글의 <code>휴업 지정</code>을 직접 눌렀을 때</b>(와 방학 기간)뿐입니다. 캘린더의 공휴일·학교행사(예: 전교학생회의)는 이름만 표시되고 수업 내용은 지워지지 않습니다.<br>
+    · 휴업 지정 후 가운데에 <b>휴업일 이름(예: 제헌절)을 세로 큰 글씨</b>로 적을 수 있습니다.<br>
     · 교시 칸 왼쪽 위 <b>✕</b> 버튼으로 그 수업을 삭제(수업 없음)할 수 있고, <b>↩</b>로 되돌립니다.<br>
     · 좁은 화면에서는 요일별 보기로 자동 전환됩니다. <code>🌐 공유 서버 연결</code> 주소가 있으면 같은 주소를 여는 누구나 보고 고칠 수 있어, 학부모도 인쇄 없이 바로 봅니다.
   </div>
@@ -489,12 +490,13 @@ function getPlan(){
   p.times=p.times||{}; p.cells=p.cells||{}; p.morning=p.morning||{}; p.lunch=p.lunch||{}; p.note=p.note||{}; p.meta=p.meta||{}; p.off=p.off||{};
   return p;
 }
-function isOff(d,ov,p){ p=p||getPlan(); return (p.off&&p.off[d]!=null) || !!(ov&&ov[d]&&ov[d].holiday); }
-function offLabel(d,ov,p){ p=p||getPlan(); return (p.off&&p.off[d]!=null&&p.off[d]!=='')?p.off[d] : ((ov&&ov[d]&&ov[d].holiday)||'휴업'); }
+/* 휴업 처리: 직접 '휴업 지정'한 날 + 학사력 방학만. 캘린더 공휴일/행사는 표시만 하고 지우지 않음 */
+function isOff(d,ov,p){ p=p||getPlan(); return (p.off&&p.off[d]!=null) || !!(ov&&ov[d]&&ov[d].vac); }
+function offLabel(d,ov,p){ p=p||getPlan(); return (p.off&&p.off[d]!=null&&p.off[d]!=='')?p.off[d] : ((ov&&ov[d]&&(ov[d].vac||ov[d].holiday))||'휴업'); }
 
 /* ============ 외부일정 오버레이 ============ */
 function buildOverlay(){
-  const ov={}; DAYS.forEach(d=>{ ov[d]={holiday:null,banners:[],periods:{}}; });
+  const ov={}; DAYS.forEach(d=>{ ov[d]={holiday:null,vac:null,banners:[],periods:{}}; });
   const dateToDay={}; DAYS.forEach((d,i)=>{ dateToDay[fmt(addDays(parse(curMon),i))]=d; });
   EVENTS.forEach(ev=>{
     const kind=ev.kind||'confirmed';
@@ -511,7 +513,7 @@ function buildOverlay(){
     });
   });
   // 학사력 방학 자동 반영(수동 지정 불필요)
-  DAYS.forEach((d,i)=>{ const ds=fmt(addDays(parse(curMon),i)); VACATIONS.forEach(v=>{ if(ds>=v.start && ds<=v.end && !ov[d].holiday) ov[d].holiday=v.name; }); });
+  DAYS.forEach((d,i)=>{ const ds=fmt(addDays(parse(curMon),i)); VACATIONS.forEach(v=>{ if(ds>=v.start && ds<=v.end && !ov[d].vac) ov[d].vac=v.name; }); });
   return ov;
 }
 
@@ -564,9 +566,10 @@ function render(){
 
 function buildWeekTable(mon,p,ov){
   let html='<colgroup><col class="lab">'+DAYS.map(()=>'<col>').join('')+'</colgroup><thead><tr><th></th>';
-  DAYS.forEach((d,i)=>{ const dt=addDays(mon,i); const calHoli=!!ov[d].holiday; const off=isOff(d,ov,p); const man=p.off&&p.off[d]!=null;
+  DAYS.forEach((d,i)=>{ const dt=addDays(mon,i); const vac=!!ov[d].vac; const off=isOff(d,ov,p); const man=p.off&&p.off[d]!=null;
     html+='<th class="'+(off?'holi-col':'')+'"><div class="dhead"><span class="ddate">'+(dt.getMonth()+1)+'/'+dt.getDate()+'</span> <span class="dow">('+d+')</span></div>'
-      +(calHoli?'':'<button class="offbtn'+(man?' on':'')+'" data-off="'+d+'">'+(man?'수업일로':'휴업 지정')+'</button>')+'</th>'; });
+      +(ov[d].holiday&&!off?'<span class="holi-name">'+esc(ov[d].holiday)+'</span>':'')
+      +(vac?'':'<button class="offbtn'+(man?' on':'')+'" data-off="'+d+'">'+(man?'수업일로':'휴업 지정')+'</button>')+'</th>'; });
   html+='</tr></thead><tbody>';
   ROWS.forEach(row=>{
     const tcustom=(p.times&&p.times[row.key]!=null)?p.times[row.key]:row.time;
@@ -613,6 +616,7 @@ function buildDayView(mon,p,ov){
   const d=mobDay; const list=[];
   if(isOff(d,ov,p)){ list.push('<div class="dcard holi">'+esc(offLabel(d,ov,p))+' · 수업 없음</div>'); }
   else{
+    if(ov[d].holiday){ list.push('<div class="dcard holi" style="padding:9px 14px;">📌 '+esc(ov[d].holiday)+'</div>'); }
     ROWS.forEach(row=>{
       const tcustom=(p.times&&p.times[row.key]!=null)?p.times[row.key]:row.time;
       if(row.type==='single'){
