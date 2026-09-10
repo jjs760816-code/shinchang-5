@@ -650,8 +650,8 @@ function buildDayView(mon,p,ov){
 function defMorning(d){ if(d==='목')return '소통 · 각부 회의'; if(d==='금')return '행복 · 주간활동 평가'; return '배려 · 생각 나눔'; }
 
 /* ============ 입력(주간표+요일별 공용) ============ */
-document.getElementById('sheet').addEventListener('input', e=>{
-  const el=e.target.closest('[contenteditable]'); if(!el) return;
+function storeFromEl(el){
+  if(!el) return;
   const k=el.getAttribute('data-k'); if(!k) return;
   if(el.id==='weekNoEd'){ getPlan().meta.weekNo=el.textContent; scheduleSave(); return; }
   const p=getPlan(); const txt=readText(el);
@@ -660,6 +660,17 @@ document.getElementById('sheet').addEventListener('input', e=>{
   else if(k==='off'){ p.off[el.getAttribute('data-day')]=txt; }
   else if(k==='subj'||k==='unit'||k==='body'){ const ck=el.getAttribute('data-cell'); p.cells[ck]=p.cells[ck]||{}; p.cells[ck][k]=txt; }
   scheduleSave();
+}
+const _sheetEl=document.getElementById('sheet');
+_sheetEl.addEventListener('input', e=>{
+  if(e.isComposing) return;                                 // 한글 조합 중에는 읽지 않음 → 마지막 글자 유실 방지
+  storeFromEl(e.target.closest('[contenteditable]'));
+});
+_sheetEl.addEventListener('compositionend', e=>{            // 조합이 끝난 마지막 글자를 확정 저장
+  storeFromEl(e.target.closest('[contenteditable]'));
+});
+_sheetEl.addEventListener('focusout', e=>{                  // 다른 칸·버튼으로 이동할 때도 확정 저장
+  storeFromEl(e.target.closest('[contenteditable]'));
 });
 function readText(el){ var t=(el.innerText!=null)?el.innerText:el.textContent; return String(t).replace(/\u00a0/g,' ').replace(/\n+$/,''); }
 ['schoolName','teacherName'].forEach(id=>{ document.getElementById(id).addEventListener('input', ()=>{ try{ localStorage.setItem('shinchang5_hdr_'+id, document.getElementById(id).textContent);}catch(e){} }); });
