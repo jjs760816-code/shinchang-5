@@ -63,7 +63,7 @@
 
   .scroll{overflow-x:auto; -webkit-overflow-scrolling:touch;}
   table.plan{width:100%; border-collapse:collapse; table-layout:fixed; min-width:740px;}
-  table.plan col.lab{width:72px;}
+  table.plan col.lab{width:92px;}
   table.plan th, table.plan td{border:1px solid var(--line); vertical-align:top; text-align:center;}
   table.plan thead th{background:#f7f9fb; padding:7px 4px;}
   .dow{font-size:22px; font-weight:800;}
@@ -90,7 +90,7 @@
   td.cell.period.nocls{background:#fafbfc!important;}
   .rowlab{background:#f7f9fb; padding:6px 3px;}
   .rl-name{font-size:15.4px; font-weight:800;}
-  .rl-time{font-size:12.1px; font-weight:600; color:var(--muted); margin-top:2px;}
+  .rl-time{font-size:12.1px; font-weight:600; color:var(--muted); margin-top:2px; white-space:nowrap;}
   td.cell{padding:5px 6px 6px;}
   td.cell.period{height:80px;}
   .chips{display:flex; flex-wrap:wrap; gap:3px; margin-bottom:3px; justify-content:center;}
@@ -267,7 +267,8 @@
     · 칸(과목·학습내용·시간·아침활동 등)을 눌러 직접 적으면 자동 저장됩니다. 과목은 시간표대로 자동 표시됩니다.<br>
     · 국악·진로체험 등 <b>외부교육은 과목 아래 학습내용 자리에 강조 칩으로</b> 자동 표시되고, 그 칸은 연한 색으로 강조됩니다.<br>
     · <code>🎨 과목 색</code> 또는 칸 우측 위 작은 네모로 칸 색을 바꿀 수 있습니다.<br>
-    · 교시 칸을 클릭한 뒤 <b>Ctrl+C</b>로 그 칸(과목·단원·학습내용)을 복사하고, 다른 칸을 클릭해 <b>Ctrl+V</b>로 붙여넣습니다. (글자를 드래그해 선택했을 때는 평소처럼 글자만 복사됩니다.)<br>
+    · 교시 칸에서 <b>과목·단원·학습내용 어디에 커서가 있어도</b> <b>Ctrl+C</b>를 누르면 그 칸(과목·단원·학습내용)이 통째로 복사되고, 다른 칸에서 <b>Ctrl+V</b>로 붙여넣습니다. (글자를 드래그해 선택했을 때는 평소처럼 글자만 복사됩니다.)<br>
+    · <b>다음 주로 넘어가도 이번 주 단원·내용이 그대로 이어집니다.</b> 손대지 않은 칸은 지난주 내용을 계속 유지하고, 다음 주에서 <b>내용만 수정</b>하면 그 주에만 반영됩니다.<br>
     · 열 전체가 비워지는 것은 <b>머리글의 <code>휴업 지정</code>을 직접 눌렀을 때</b>(와 방학 기간)뿐입니다. 캘린더의 공휴일·학교행사(예: 전교학생회의)는 이름만 표시되고 수업 내용은 지워지지 않습니다.<br>
     · 휴업 지정 후 가운데에 <b>휴업일 이름(예: 제헌절)을 세로 큰 글씨</b>로 적을 수 있습니다.<br>
     · 교시 칸 왼쪽 위 <b>✕</b> 버튼으로 그 수업을 삭제(수업 없음)할 수 있고, <b>↩</b>로 되돌립니다.<br>
@@ -527,6 +528,16 @@ function bgFor(subject, cd, evs){
   return {bg:'', fg:'#222a31'};                                        // 4) 흰색 기본
 }
 
+function prevCellContent(rowKey,day){   // 지난 주(같은 반)들에서 단원·내용을 각각 가장 가까운 값으로 이어받기
+  const ck=rowKey+'|'+day; let m=parse(curMon); let unit=null, body=null;
+  for(let i=0;i<30 && (unit===null||body===null);i++){
+    m=addDays(m,-7); const pl=STATE.plans[fmt(m)+'#'+curClass];
+    const c=pl&&pl.cells&&pl.cells[ck]; if(!c) continue;
+    if(unit===null && c.unit!=null && c.unit!=='') unit=c.unit;   // 단원이 저장된 가장 최근 주
+    if(body===null && c.body!=null && c.body!=='') body=c.body;   // 내용이 저장된 가장 최근 주
+  }
+  return (unit!==null||body!==null)?{unit,body}:null;
+}
 function cellModel(day,rowKey,p,ov){
   const pidx=parseInt(rowKey,10)-1;
   const tt=ttFor(curClass);
@@ -536,8 +547,11 @@ function cellModel(day,rowKey,p,ov){
   const evs=(ov[day].periods[rowKey])||[];
   const subjStored=cd.subj;
   const subjShow=(subjStored!=null&&subjStored!=='')?subjStored:baseSubj;
-  const unit=(cd.unit!=null)?cd.unit:'';
-  const body=(cd.body!=null)?cd.body:'';
+  // 이번 주에 아직 손대지 않은 단원·내용은 지난 주 것을 그대로 이어서 표시(수정하면 이번 주로만 저장)
+  let inh=null;
+  if(!cd.del && (!('unit' in cd)||!('body' in cd))) inh=prevCellContent(rowKey,day);
+  const unit=('unit' in cd)?cd.unit:((inh&&inh.unit!=null)?inh.unit:'');
+  const body=('body' in cd)?cd.body:((inh&&inh.body!=null)?inh.body:'');
   return {cellKey,evs,subjShow,unit,body,del:!!cd.del};
 }
 
@@ -735,15 +749,19 @@ document.getElementById('sheet').addEventListener('click', e=>{
 document.addEventListener('keydown', e=>{
   if(!(e.ctrlKey||e.metaKey)||e.altKey) return;
   const ae=document.activeElement;
-  const key=(ae&&ae.getAttribute)?ae.getAttribute('data-cell'):null;   // 교시 편집칸일 때만 값 있음
+  const host=(ae&&ae.closest)?ae.closest('[data-cell]'):null;   // 과목·단원·학습내용 어디에 커서가 있어도 그 칸을 찾음
+  const key=host?host.getAttribute('data-cell'):null;
+  const isPeriod=key&&/^[1-6]\|/.test(key);                     // 교시 칸만(점심 등 제외)
   const kk=(e.key||'').toLowerCase();
   if(kk==='c'){
-    if(key && window.getSelection && window.getSelection().isCollapsed){
-      const c=getPlan().cells[key]||{}; cellClip={src:key,subj:c.subj||'',unit:c.unit||'',body:c.body||'',bg:c.bg||''};
+    if(isPeriod && window.getSelection && window.getSelection().isCollapsed){
+      const parts=key.split('|'); const m=cellModel(parts[1],parts[0],getPlan(),buildOverlay());  // 화면에 보이는 과목·단원·내용 기준
+      const c=getPlan().cells[key]||{};
+      cellClip={src:key,subj:m.subjShow||'',unit:m.unit||'',body:m.body||'',bg:c.bg||''};
       flash('칸 복사됨 — Ctrl+V로 붙여넣기'); e.preventDefault();
     }
   } else if(kk==='v'){
-    if(key && cellClip){
+    if(isPeriod && cellClip){
       const p=getPlan(); p.cells[key]=p.cells[key]||{}; delete p.cells[key].del;
       p.cells[key].subj=cellClip.subj; p.cells[key].unit=cellClip.unit; p.cells[key].body=cellClip.body;
       if(cellClip.bg) p.cells[key].bg=cellClip.bg; else delete p.cells[key].bg;
