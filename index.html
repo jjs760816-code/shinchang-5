@@ -734,7 +734,10 @@ _sheetEl.addEventListener('compositionend', e=>{            // 조합이 끝난 
   storeFromEl(e.target.closest('[contenteditable]'));
 });
 _sheetEl.addEventListener('focusout', e=>{                  // 다른 칸·버튼으로 이동할 때도 확정 저장
-  storeFromEl(e.target.closest('[contenteditable]'));
+  const el=e.target.closest('[contenteditable]');
+  // render()로 교체된 이전 요소의 지연 focusout이 새 STATE를 원래 값으로 되돌리는 것을 방지
+  if(el && !el.isConnected) return;
+  storeFromEl(el);
 });
 function readText(el){ var t=(el.innerText!=null)?el.innerText:el.textContent; return String(t).replace(/\u00a0/g,' ').replace(/\n+$/,''); }
 ['schoolName','teacherName'].forEach(id=>{ document.getElementById(id).addEventListener('input', ()=>{ try{ localStorage.setItem('shinchang5_hdr_'+id, document.getElementById(id).textContent);}catch(e){} }); });
@@ -812,12 +815,16 @@ document.addEventListener('keydown', e=>{
     }
   } else if(kk==='v'){
     if(isPeriod && cellClip){
+      // 붙여넣기 직전에 focusout이 발생하면 이전 DOM의 원래 값이 다시 저장될 수 있으므로
+      // 먼저 기본 붙여넣기를 막고 현재 편집 요소의 focusout 저장을 잠시 차단한다.
+      e.preventDefault();
       const p=getPlan(); p.cells[key]=p.cells[key]||{}; delete p.cells[key].del;
       p.cells[key].subj=cellClip.subj; p.cells[key].unit=cellClip.unit; p.cells[key].body=cellClip.body;
       if(cellClip.bg) p.cells[key].bg=cellClip.bg; else delete p.cells[key].bg;
-      saveState(); e.preventDefault(); render();
+      saveState();
+      render();
       const f=document.querySelector('.body[data-cell="'+key.replace(/"/g,'')+'"]'); if(f) f.focus();
-      flash('붙여넣음');
+      flash('붙여넣음 · 저장됨');
     }
   }
 });
