@@ -464,21 +464,71 @@ async function loadEvents(){
   EVENTS=DEFAULT.slice(); evSource='seed';
 }
 function normState(d){
-  if(!d||typeof d!=='object'||Array.isArray(d)) return {plans:{},tt:null,subjColors:{}};
-  return { plans:(d.plans&&typeof d.plans==='object')?d.plans:{}, tt:(d.tt&&typeof d.tt==='object')?d.tt:null, subjColors:(d.subjColors&&typeof d.subjColors==='object')?d.subjColors:{} };
+  if(!d||typeof d!=='object'||Array.isArray(d)) return {plans:{},tt:null,subjColors:{},_sync:{updatedAt:0}};
+  const sync=(d._sync&&typeof d._sync==='object')?d._sync:{};
+  return {
+    plans:(d.plans&&typeof d.plans==='object')?d.plans:{},
+    tt:(d.tt&&typeof d.tt==='object')?d.tt:null,
+    subjColors:(d.subjColors&&typeof d.subjColors==='object')?d.subjColors:{},
+    _sync:{updatedAt:Number(sync.updatedAt)||0}
+  };
+}
+function stateStamp(d){ return d&&d._sync ? (Number(d._sync.updatedAt)||0) : 0; }
+function hasStateData(d){
+  return !!(d && ((d.plans&&Object.keys(d.plans).length) || d.tt || (d.subjColors&&Object.keys(d.subjColors).length)));
+}
+function pickState(local, others){
+  // 기존 사용자의 브라우저 데이터는 절대 빈/구형 원격 데이터로 덮어쓰지 않는다.
+  let best=local||null;
+  (others||[]).forEach(x=>{
+    if(!x) return;
+    if(!best){ best=x; return; }
+    const bs=stateStamp(best), xs=stateStamp(x);
+    if(xs>bs) best=x;
+    else if(xs===bs && !hasStateData(best) && hasStateData(x)) best=x;
+    // 타임스탬프가 없는 레거시 데이터끼리는 local(첫 번째 값)을 우선한다.
+  });
+  return best||{plans:{},tt:null,subjColors:{},_sync:{updatedAt:0}};
 }
 async function loadState(){
-  if(wserver){ try{ return normState(await fetchJSON(wserver)); }catch(e){} }
-  if(HAS_WS){ try{ const r=await window.storage.get(WKEY,true); if(r&&r.value) return normState(JSON.parse(r.value)); }catch(e){} }
-  try{ const r=localStorage.getItem(WKEY); if(r) return normState(JSON.parse(r)); }catch(e){}
-  return {plans:{},tt:null};
+  let local=null, shared=null, remote=null;
+  try{ const r=localStorage.getItem(WKEY); if(r) local=normState(JSON.parse(r)); }catch(e){ console.warn('local load failed',e); }
+  if(HAS_WS){
+    try{ const r=await window.storage.get(WKEY,true); if(r&&r.value) shared=normState(JSON.parse(r.value)); }
+    catch(e){ console.warn('shared load failed',e); }
+  }
+  if(wserver){
+    try{ remote=normState(await fetchJSON(wserver)); }
+    catch(e){ console.warn('server load failed',e); }
+  }
+  const chosen=pickState(local,[shared,remote]);
+  // 원격에서 가져온 최신 데이터도 즉시 로컬 백업을 만든다.
+  try{ localStorage.setItem(WKEY,JSON.stringify(chosen)); }catch(e){ console.warn('local backup failed',e); }
+  return chosen;
 }
 function saveState(){
+  STATE._sync=STATE._sync||{};
+  STATE._sync.updatedAt=Date.now();
   const s=JSON.stringify(STATE);
-  try{ localStorage.setItem(WKEY,s);}catch(e){}
-  if(HAS_WS){ try{ window.storage.set(WKEY,s,true);}catch(e){} }
-  if(wserver){ try{ fetch(wserver,{method:'POST',headers:{'Content-Type':'text/plain'},body:s}); }catch(e){} }
-  flash('저장됨 '+new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'}));
+  const tm=new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
+  let localOK=false;
+  try{ localStorage.setItem(WKEY,s); localOK=true; }
+  catch(e){ console.error('local save failed',e); flash('브라우저 저장 실패 — 내보내기로 백업하세요'); return; }
+
+  if(HAS_WS){
+    try{
+      const p=window.storage.set(WKEY,s,true);
+      if(p&&typeof p.catch==='function') p.catch(e=>console.warn('shared save failed',e));
+    }catch(e){ console.warn('shared save failed',e); }
+  }
+
+  // 로컬 저장 성공을 먼저 확정하고, 공유 서버 저장은 별도로 확인한다.
+  flash((localOK?'브라우저 저장됨 ':'')+tm+(wserver?' · 온라인 저장 중…':''));
+  if(wserver){
+    fetch(wserver,{method:'POST',headers:{'Content-Type':'text/plain'},body:s})
+      .then(r=>{ if(!r.ok) throw new Error('HTTP '+r.status); flash('브라우저+온라인 저장됨 '+tm); })
+      .catch(e=>{ console.warn('server save failed',e); flash('브라우저 저장됨 '+tm+' · 온라인 저장 실패'); });
+  }
 }
 function scheduleSave(){ lastInputTs=Date.now(); clearTimeout(saveTimer); saveTimer=setTimeout(()=>{saveTimer=null; saveState();},600); }
 
@@ -827,7 +877,15 @@ function startPoll(){
     if(saveTimer) return;
     const ae=document.activeElement; if(ae&&ae.isContentEditable) return;
     if(document.getElementById('ttBack').classList.contains('on')) return;
-    try{ const d=normState(await fetchJSON(wserver)); if(JSON.stringify(d)!==JSON.stringify(STATE)){ STATE=d; render(); flash('최신 내용 동기화됨'); } }catch(e){}
+    try{
+      const d=normState(await fetchJSON(wserver));
+      // 서버가 실제로 더 최신일 때만 화면을 갱신한다. 빈/구형 서버 응답은 로컬 입력을 덮어쓰지 않는다.
+      if(stateStamp(d)>stateStamp(STATE)){
+        STATE=d;
+        try{ localStorage.setItem(WKEY,JSON.stringify(STATE)); }catch(e){ console.warn('local sync backup failed',e); }
+        render(); flash('최신 내용 동기화됨');
+      }
+    }catch(e){ console.warn('server poll failed',e); }
   }, 25000);
 }
 
