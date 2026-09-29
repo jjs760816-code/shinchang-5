@@ -808,10 +808,19 @@ document.addEventListener('keydown', e=>{
   const kk=(e.key||'').toLowerCase();
   if(kk==='c'){
     if(isPeriod && window.getSelection && window.getSelection().isCollapsed){
-      const parts=key.split('|'); const m=cellModel(parts[1],parts[0],getPlan(),buildOverlay());  // 화면에 보이는 과목·단원·내용 기준
-      const c=getPlan().cells[key]||{};
-      cellClip={src:key,subj:m.subjShow||'',unit:m.unit||'',body:m.body||'',bg:c.bg||''};
-      flash('칸 복사됨 — Ctrl+V로 붙여넣기'); e.preventDefault();
+      // Ctrl+C를 누른 순간 화면에 보이는 편집값을 먼저 STATE에 확정한다.
+      // input 이벤트가 아직 처리되지 않은 상태에서 cellModel()을 읽으면 예전 값이 복사되어
+      // 다른 칸을 붙여넣을 때 원래대로 돌아가는 것처럼 보일 수 있다.
+      storeFromEl(ae);
+      const cell=document.querySelector('.cell.period [data-cell="'+key+'"]')?.closest('.cell.period') || ae.closest('.dcard');
+      if(cell){
+        cell.querySelectorAll('[contenteditable][data-cell="'+key+'"]').forEach(el=>storeFromEl(el));
+      }
+      const parts=key.split('|'); const m=cellModel(parts[1],parts[0],getPlan(),buildOverlay());
+      const cd=getPlan().cells[key]||{};
+      cellClip={src:key,subj:m.subjShow||'',unit:m.unit||'',body:m.body||'',bg:cd.bg||''};
+      saveState();
+      flash('칸 복사됨 · 원본도 저장됨 — Ctrl+V로 붙여넣기'); e.preventDefault();
     }
   } else if(kk==='v'){
     if(isPeriod && cellClip){
